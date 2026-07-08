@@ -9,6 +9,7 @@ const api = axios.create({
 })
 
 api.interceptors.request.use((config) =>{
+    console.log("Sending request to:", config.baseURL + config.url);
     const token = localStorage.getItem('rozgar_token')
     if(token) config.headers.Authorization= `Bearer ${token}`
     return config
