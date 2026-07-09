@@ -1,5 +1,4 @@
-import axios from "axios";
-console.log("VITE_API_URL =", import.meta.env.VITE_API_URL);
+import axios from "axios";\
 
 const BASE_URL = import.meta.env.VITE_API_URL || '/api/v1'
 
@@ -9,7 +8,6 @@ const api = axios.create({
 })
 
 api.interceptors.request.use((config) =>{
-    console.log("Sending request to:", config.baseURL + config.url);
     const token = localStorage.getItem('rozgar_token')
     if(token) config.headers.Authorization= `Bearer ${token}`
     return config
