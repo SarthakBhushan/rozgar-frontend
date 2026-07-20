@@ -337,3 +337,21 @@ export function useOrderInvoice(orderId) {
     retry: false,
   })
 }
+
+
+// ── Payment ──────────────────────────────────────────────────────────────
+export function useInitiatePayment() {
+    return useMutation({
+        mutationFn: (orderId) =>
+            api.post(`/transactions/orders/${orderId}/payment/initiate`).then(r => r.data.data),
+        onError: (e) => toast.error(getErrorMessage(e)),
+    })
+}
+
+export function useVerifyPayment() {
+    return useMutation({
+        mutationFn: ({ orderId, ...body }) =>
+            api.post(`/transactions/orders/${orderId}/payment/verify`, body).then(r => r.data.data),
+        onError: (e) => toast.error(getErrorMessage(e)),
+    })
+}

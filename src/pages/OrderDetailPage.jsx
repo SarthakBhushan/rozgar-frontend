@@ -46,6 +46,18 @@ export default function OrderDetailPage() {
   const isBuyer = user?.userId === order.buyerUserId
   const isSeller = user?.userId === order.sellerUserId
 
+  const options = {
+    key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+    amount: PaymentAddress.amount * 100,
+    currency: "INR",
+    order_id: PaymentAddress.razorpayOrderId,
+    handler: async(response)=>{
+      await verifyPayment(response)
+    }
+  }
+  const rzp = new window.Razorpay(options)
+  rzp.open()
+
   const sellerActions = {
     CONFIRMED: { label: 'Mark as Processing', nextStatus: 'PROCESSING' },
     PROCESSING: { label: 'Mark as Shipped', nextStatus: 'SHIPPED' },
@@ -63,6 +75,37 @@ export default function OrderDetailPage() {
 
   async function handleStatusUpdate(status) {
     await updateStatus.mutateAsync(status)
+  }
+
+  async function handleInitiatePayment() {
+    try {
+        const payment = await initiatePaymentMutation.mutateAsync(order.id)
+        
+        const options = {
+            key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+            amount: payment.amount * 100,
+            currency: payment.currency,
+            name: 'Rozgar',
+            description: `Order #${order.id}`,
+            order_id: payment.razorpayOrderId,
+            handler: async (response) => {
+                await verifyPaymentMutation.mutateAsync({
+                    orderId: order.id,
+                    razorpayOrderId: response.razorpay_order_id,
+                    razorpayPaymentId: response.razorpay_payment_id,
+                    razorpaySignature: response.razorpay_signature,
+                })
+                toast.success('Payment successful! Invoice generated.')
+                refetchOrder()
+            },
+            prefill: { name: user?.name, email: user?.email },
+            theme: { color: '#E8572A' },
+        }
+        const rzp = new window.Razorpay(options)
+        rzp.open()
+    } catch (err) {
+        toast.error(getErrorMessage(err))
+    }
   }
 
   return (
